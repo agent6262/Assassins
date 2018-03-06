@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+composer.phar
+propel.php
+/generated-sql/
+/generated-migrations/
+/generated-conf/
+/config.json
+/templates/
+/favicon.ico
+/assets/

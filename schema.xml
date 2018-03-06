@@ -1,0 +1,273 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<database name='assassins' defaultIdMethod='native' identifierQuoting="true">
+    <!-- Database init info -->
+    <vendor type="mysql">
+        <parameter name="Charset" value="utf8"/>
+    </vendor>
+    <!-- Users Table -->
+    <table name="users" phpName="User">
+        <column name="id" type="integer" phpType="int" primaryKey="true" autoIncrement="true"/>
+        <column name="email" type="varchar" size="275" phpType="string" required="true"/>
+        <column name="username" type="varchar" size="25" phpType="string" required="true"/>
+        <column name="real_name" type="varchar" size="255" phpType="string" required="true"/>
+        <column name="password" type="varchar" size="60" phpType="string" required="true"/>
+        <column name="money" type="integer" phpType="int" required="false" defaultValue="0"/>
+        <column name="total_money" type="integer" phpType="int" required="false" defaultValue="0"/>
+        <column name="verification_token" type="varchar" size="32" phpType="string" required="true"/>
+        <column name="cookie_token" type="varchar" size="64" phpType="string" required="false"/>
+        <column name="active" type="boolean" phpType="boolean" defaultValue="false" required="false"/>
+        <column name="date_created" type="timestamp" defaultExpr="CURRENT_TIMESTAMP" required="true"/>
+        <column name="verification_time" type="timestamp" defaultValue="null" required="false"/>
+        <index>
+            <index-column name="email"/>
+            <index-column name="username"/>
+        </index>
+        <unique>
+            <unique-column name='id'/>
+            <unique-column name='email'/>
+            <unique-column name='username'/>
+        </unique>
+    </table>
+    <!-- User preference -->
+    <table name="preferences" phpName="Preference">
+        <column name='user_id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='auto_join_next_game' type="boolean" phpType="boolean" defaultValue="true"/>
+        <foreign-key foreignTable='users'>
+            <reference local='user_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- User games table -->
+    <table name='user_games' phpName="UserGame" isCrossRef='true'>
+        <column name='user_id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='game_id' type="integer" phpType="int" primaryKey='true'/>
+        <foreign-key foreignTable='users' phpName="User">
+            <reference local='user_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='games' phpName="Game" onDelete="cascade">
+            <reference local='game_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- User preset table -->
+    <table name='user_presets' phpName="UserPreset" isCrossRef='true'>
+        <column name='user_id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='preset_id' type="integer" phpType="int" primaryKey='true'/>
+        <foreign-key foreignTable='users'>
+            <reference local='user_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='presets' onDelete="cascade">
+            <reference local='preset_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- =================== -->
+    <!-- === GAME TABLES === -->
+    <!-- =================== -->
+    <!-- Games table -->
+    <table name="games" phpName="Game">
+        <column name="id" type="integer" phpType="int" primaryKey="true" autoIncrement="true"/>
+        <column name='name' type='varchar' size='32' required='true'/>
+        <column name="active" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="owner_id" type="integer" phpType="int" required="true"/>
+        <column name="started" type="boolean" phpType="boolean" defaultValue="false"/>
+        <column name="paused" type="boolean" phpType="boolean" defaultValue="false"/>
+        <!-- Preset fields -->
+        <column name='rules' type='longvarchar' phpType="string"/>
+        <!-- Setting fields -->
+        <column name="invite" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="request_invite" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="auto_join_group_id" type="integer" phpType="int"/>
+        <column name="auto_place" type="boolean" phpType="boolean" defaultValue="false"/>
+        <column name="duplicate_game_on_complete" type="boolean" phpType="boolean" defaultValue="true"/>
+        <foreign-key foreignTable='users' phpName="Owner" refPhpName="OwnedGame">
+            <reference local='owner_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='groups' phpName="AutoJoinGroup" onDelete="cascade" refPhpName="AutoJoinedGame">
+            <reference local='auto_join_group_id' foreign='id'/>
+        </foreign-key>
+        <unique>
+            <unique-column name='id'/>
+        </unique>
+    </table>
+    <!-- Game groups table -->
+    <table name='game_groups' phpName="GameGroup" isCrossRef='true'>
+        <column name='game_id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='group_id' type="integer" phpType="int" primaryKey='true'/>
+        <foreign-key foreignTable='games' onDelete="cascade">
+            <reference local='game_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='groups' onDelete="cascade">
+            <reference local='group_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- circuit table -->
+    <table name="circuit_players" phpName="CircuitPlayer">
+        <column name="id" type="integer" phpType="int" primaryKey="true"/>
+        <column name="active" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="game_id" type="integer" phpType="int" />
+        <column name="player_id" type="integer" phpType="int" required="true"/>
+        <column name="target_id" type="integer" phpType="int" required="true"/>
+        <column name="pay" type="integer" phpType="int" defaultValue="0"/>
+        <column name="money_spent" type="integer" phpType="int" defaultValue="0"/>
+        <column name="date_assigned" type="timestamp" defaultExpr="CURRENT_TIMESTAMP" required="true"/>
+        <column name="date_completed" type="timestamp" defaultValue="null" required="true"/>
+        <foreign-key foreignTable='games' onDelete="cascade">
+            <reference local='game_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='users' phpName='Player'>
+            <reference local='player_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='users' phpName='Target'>
+            <reference local='target_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- Game player group table -->
+    <table name='game_player_groups' phpName="GamePlayerGroup" isCrossRef="true">
+        <column name='game_id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='player_group_id' type="integer" phpType="int" primaryKey='true'/>
+        <foreign-key foreignTable='games' onDelete="cascade">
+            <reference local='game_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='player_groups'>
+            <reference local='player_group_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- player group table -->
+    <table name='player_groups' phpName="PlayerGroup">
+        <column name='id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='player_id' type="integer" phpType="int" required='true'/>
+        <column name='group_id' type="integer" phpType="int" required='true'/>
+        <foreign-key foreignTable='users'>
+            <reference local='player_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='groups' onDelete="cascade">
+            <reference local='group_id' foreign='id'/>
+        </foreign-key>
+        <index>
+            <index-column name="player_id"/>
+            <index-column name="group_id"/>
+        </index>
+    </table>
+    <!-- game action log cross ref table -->
+    <table name='game_action_logs' phpName="GameActionLog" isCrossRef='true'>
+        <column name='game_id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='action_id' type="integer" phpType="int" primaryKey='true'/>
+        <foreign-key foreignTable='games' onDelete="cascade">
+            <reference local='game_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='action_logs' onDelete="cascade">
+            <reference local='action_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- Game action logs table -->
+    <table name='action_logs' phpName='ActionLog'>
+        <column name='id' type='integer' required='true' primaryKey='true' autoIncrement='true'/>
+        <column name='date' type='timestamp' required='true'/>
+        <column name='type' type='tinyint' required='true'/>
+        <column name='action' type='varchar' size='255'/>
+    </table>
+    <!-- ========================== -->
+    <!-- === GAME PRESET TABLES === -->
+    <!-- ========================== -->
+    <!-- Presets table -->
+    <table name='presets' phpName='Preset'>
+        <column name='id' type='integer' required='true' primaryKey='true' autoIncrement='true'/>
+        <column name='name' type='varchar' size='32' required='true'/>
+        <column name='rules' type='longvarchar' phpType="string"/>
+        <unique>
+            <unique-column name='id'/>
+        </unique>
+    </table>
+    <!-- Preset groups table -->
+    <table name='preset_groups' phpName="PresetGroup" isCrossRef='true'>
+        <column name='preset_id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='group_id' type="integer" phpType="int" primaryKey='true'/>
+        <foreign-key foreignTable='presets' onDelete="cascade">
+            <reference local='preset_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='groups' onDelete="cascade">
+            <reference local='group_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- Groups table -->
+    <table name='groups' phpName='Group'>
+        <column name='id' type='integer' required='true' primaryKey='true' autoIncrement='true'/>
+        <column name='name' type='varchar' size='32' required='true'/>
+        <column name='permissions' type='integer' defaultValue='0' required='true'/>
+        <column name='rank' type='tinyint' required='true'/>
+        <unique>
+            <unique-column name='rank'/>
+        </unique>
+    </table>
+    <!-- Settings table -->
+    <table name='settings' phpName='Setting'>
+        <column name='presets_id' type='integer' primaryKey='true'/>
+        <column name="invite" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="request_invite" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="auto_join_group_id" type="integer" phpType="int"/>
+        <column name="auto_place" type="boolean" phpType="boolean" defaultValue="false"/>
+        <column name="duplicate_game_on_complete" type="boolean" phpType="boolean" defaultValue="true"/>
+        <foreign-key foreignTable='groups' phpName="AutoJoinGroup" onDelete="cascade">
+            <reference local='auto_join_group_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='presets' onDelete="cascade">
+            <reference local='presets_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- ================== -->
+    <!-- === LTS TABLES === -->
+    <!-- ================== -->
+    <!-- LTS Games table -->
+    <table name="lts_games" phpName="LtsGame">
+        <column name="id" type="integer" phpType="int" primaryKey="true" autoIncrement="true"/>
+        <column name="owner_id" type="integer" phpType="int" required="true"/>
+        <!-- Preset fields -->
+        <column name='rules' type='longvarchar' phpType="string"/>
+        <!-- Setting fields -->
+        <column name="invite" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="request_invite" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="auto_place" type="boolean" phpType="boolean" defaultValue="false"/>
+        <foreign-key foreignTable='users' phpName="Owner">
+            <reference local='owner_id' foreign='id'/>
+        </foreign-key>
+        <unique>
+            <unique-column name='id'/>
+        </unique>
+    </table>
+    <!-- LTS Circuit table -->
+    <table name="lts_circuit_players" phpName="LtsCircuitPlayer">
+        <column name="id" type="integer" phpType="int" primaryKey="true"/>
+        <column name="active" type="boolean" phpType="boolean" defaultValue="true"/>
+        <column name="game_id" type="integer" phpType="int" />
+        <column name="player_id" type="integer" phpType="int" required="true"/>
+        <column name="target_id" type="integer" phpType="int" required="true"/>
+        <column name="money_spent" type="integer" phpType="int" defaultValue="0"/>
+        <column name="date_assigned" type="timestamp" defaultExpr="CURRENT_TIMESTAMP" required="true"/>
+        <column name="date_completed" type="timestamp" defaultValue="null" required="true"/>
+        <foreign-key foreignTable='lts_games'>
+            <reference local='game_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='users' phpName='Player'>
+            <reference local='player_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='users' phpName='Target'>
+            <reference local='target_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- game action log cross ref table -->
+    <table name='lts_game_action_logs' phpName="LtsGameActionLog" isCrossRef='true'>
+        <column name='game_id' type="integer" phpType="int" primaryKey='true'/>
+        <column name='action_id' type="integer" phpType="int" primaryKey='true'/>
+        <foreign-key foreignTable='lts_games' onDelete="cascade">
+            <reference local='game_id' foreign='id'/>
+        </foreign-key>
+        <foreign-key foreignTable='lts_action_logs' onDelete="cascade">
+            <reference local='action_id' foreign='id'/>
+        </foreign-key>
+    </table>
+    <!-- Game action logs table -->
+    <table name='lts_action_logs' phpName='LtsActionLog'>
+        <column name='id' type='integer' required='true' primaryKey='true' autoIncrement='true'/>
+        <column name='date' type='timestamp' defaultExpr="CURRENT_TIMESTAMP" required='true'/>
+        <column name='type' type='tinyint' required='true'/>
+        <column name='action' type='varchar' size='255'/>
+    </table>
+</database>
